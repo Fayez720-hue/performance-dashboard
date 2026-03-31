@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Can shift Performance Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* ========= WATERMARK BACKGROUND WITH LOGO ========= */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('file:///C:/Users/Ahmed Fayez/Downloads/CANSHIFTTT-02.png');
+            background-repeat: repeat;
+            background-size: 150px;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Fallback pattern in case logo doesn't load - subtle geometric pattern */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="rgba(255,255,255,0.03)" d="M20,20 L30,20 L30,30 L20,30 Z M50,40 L60,40 L60,50 L50,50 Z M80,70 L90,70 L90,80 L80,80 Z M10,80 L20,80 L20,90 L10,90 Z"/></svg>');
+            background-repeat: repeat;
+            background-size: 40px;
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Ensure all content sits above watermark */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Header with logo + title alignment */
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .logo-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 18px;
+            padding: 10px;
+            transition: transform 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .logo-wrapper:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .company-logo {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .title-text h1 {
+            color: #333;
+            font-size: 2.3em;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .title-text p {
+            color: #666;
+            font-size: 1em;
+        }
+
+        /* Optional badge or tagline */
+        .brand-badge {
+            background: #f0f2ff;
+            padding: 8px 18px;
+            border-radius: 40px;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            backdrop-filter: blur(0px);
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .kpi-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .kpi-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .filter-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        select, button {
+            padding: 10px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        select {
+            background: white;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+        }
+
+        button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.3em;
+        }
+
+        canvas {
+            max-height: 400px;
+        }
+
+        /* Table Section */
+        .table-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        .table-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #555;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .score-high {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .score-medium {
+            color: #f59e0b;
+            font-weight: bold;
+        }
+
+        .score-low {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #667eea;
+            transition: width 0.3s ease;
+        }
+
+        /* Error handling for logo - show placeholder if image fails to load */
+        .company-logo {
+            background: #f0f2ff;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .header-left {
+                justify-content: center;
+            }
+
+            .title-text h1 {
+                font-size: 1.8em;
+            }
+            
+            .kpi-value {
+                font-size: 1.8em;
+            }
+
+            .company-logo {
+                width: 50px;
+                height: 50px;
+            }
+
+            body::before {
+                background-size: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header with Company Logo (visible next to title) -->
+        <div class="header">
+            <div class="header-left">
+                <!-- Company Logo from local device -->
+                <div class="logo-wrapper">
+                    <img class="company-logo" 
+                         src="file:///C:/Users/Ahmed Fayez/Downloads/CANSHIFTTT-02.png" 
+                         alt="CanShift Company Logo"
+                         onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%23667eea\'/%3E%3Ctext x=\'50\' y=\'67\' font-size=\'40\' text-anchor=\'middle\' fill=\'white\' font-weight=\'bold\'%3ECS%3C/text%3E%3C/svg%3E'; this.style.background='#667eea';">
+                </div>
+                <div class="title-text">
+                    <h1>🏃‍♂️ Performance Dashboard</h1>
+                    <p>Interactive Analytics & Employee Performance Tracking</p>
+                </div>
+            </div>
+            <div class="brand-badge">
+                ⚡ CanShift Analytics • Enterprise
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid" id="kpiGrid">
+            <!-- Dynamic KPI cards will be inserted here -->
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="filter-title">🔍 Filter & Sort</div>
+            <div class="filter-controls">
+                <select id="sortBy">
+                    <option value="name">Sort by Name</option>
+                    <option value="score">Sort by Score</option>
+                    <option value="tasks">Sort by Tasks</option>
+                    <option value="adherence">Sort by Adherence</option>
+                </select>
+                <select id="filterTitle">
+                    <option value="all">All Titles</option>
+                    <option value="Content creator">Content Creator</option>
+                    <option value="Media buyer">Media Buyer</option>
+                    <option value="Videographer">Videographer</option>
+                    <option value="Graphic designer">Graphic Designer</option>
+                </select>
+                <button onclick="applyFilters()">Apply Filters</button>
+                <button onclick="resetFilters()">Reset</button>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>📊 Employee Performance Score</h3>
+                <canvas id="scoreChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>🎯 Tasks Completed vs Score</h3>
+                <canvas id="tasksVsScoreChart"></canvas>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>📈 Adherence Rate by Employee</h3>
+                <canvas id="adherenceChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>🏆 Top Performers</h3>
+                <canvas id="topPerformersChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Employee Table -->
+        <div class="table-section">
+            <h3>👥 Employee Ranking Details</h3>
+            <div id="employeeTable">
+                <!-- Dynamic table will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Employee data from CSV
+        let employees = [
+            { name: "Amira Sobhy", title: "Content creator", tasks: 2, score: 99.98, adherence: 70.81 },
+            { name: "Mohamed Abdel Sattar", title: "Media buyer", tasks: 1, score: 90.00, adherence: 63.05 },
+            { name: "Obada Hisham", title: "Videographer", tasks: 3, score: 65.00, adherence: 64.22 },
+            { name: "Haneen Abdel Fattah", title: "Graphic designer", tasks: 1, score: 10.00, adherence: 66.23 }
+        ];
+
+        let currentEmployees = [...employees];
+        let charts = {};
+
+        // Helper function to get score class
+        function getScoreClass(score) {
+            if (score >= 80) return 'score-high';
+            if (score >= 50) return 'score-medium';
+            return 'score-low';
+        }
+
+        // Update KPI cards
+        function updateKPIs() {
+            const totalEmployees = currentEmployees.length;
+            const avgScore = (currentEmployees.reduce((sum, emp) => sum + emp.score, 0) / totalEmployees).toFixed(2);
+            const totalTasks = currentEmployees.reduce((sum, emp) => sum + emp.tasks, 0);
+            const avgAdherence = (currentEmployees.reduce((sum, emp) => sum + parseFloat(emp.adherence), 0) / totalEmployees).toFixed(2);
+            const topPerformer = currentEmployees.reduce((max, emp) => emp.score > max.score ? emp : max, currentEmployees[0]);
+
+            const kpiGrid = document.getElementById('kpiGrid');
+            kpiGrid.innerHTML = `
+                <div class="kpi-card">
+                    <h3>Total Employees</h3>
+                    <div class="kpi-value">${totalEmployees}</div>
+                </div>
+                <div class="kpi-card">
+                    <h3>Average Score</h3>
+                    <div class="kpi-value">${avgScore}%</div>
+                </div>
+                <div class="kpi-card">
+                    <h3>Total Tasks</h3>
+                    <div class="kpi-value">${totalTasks}</div>
+                </div>
+                <div class="kpi-card">
+                    <h3>Average Adherence</h3>
+                    <div class="kpi-value">${avgAdherence}%</div>
+                </div>
+                <div class="kpi-card">
+                    <h3>🏆 Top Performer</h3>
+                    <div class="kpi-value">${topPerformer.name}</div>
+                    <div style="font-size: 0.9em; color: #666;">${topPerformer.score}%</div>
+                </div>
+            `;
+        }
+
+        // Render employee table
+        function renderTable() {
+            const tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Title</th>
+                            <th>No. of Tasks</th>
+                            <th>Score</th>
+                            <th>Adherence</th>
+                            <th>Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${currentEmployees.map(emp => `
+                            <tr>
+                                <td><strong>${emp.name}</strong></td>
+                                <td>${emp.title}</td>
+                                <td>${emp.tasks}</td>
+                                <td class="${getScoreClass(emp.score)}">${emp.score}%</td>
+                                <td>${emp.adherence}%</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${emp.score}%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('employeeTable').innerHTML = tableHTML;
+        }
+
+        // Update all charts
+        function updateCharts() {
+            const names = currentEmployees.map(emp => emp.name);
+            const scores = currentEmployees.map(emp => emp.score);
+            const tasks = currentEmployees.map(emp => emp.tasks);
+            const adherence = currentEmployees.map(emp => emp.adherence);
+            
+            // Colors array
+            const colors = ['#667eea', '#764ba2', '#f59e0b', '#10b981', '#ef4444', '#3b82f6'];
+
+            // Score Chart
+            if (charts.scoreChart) charts.scoreChart.destroy();
+            const scoreCtx = document.getElementById('scoreChart').getContext('2d');
+            charts.scoreChart = new Chart(scoreCtx, {
+                type: 'bar',
+                data: {
+                    labels: names,
+                    datasets: [{
+                        label: 'Performance Score (%)',
+                        data: scores,
+                        backgroundColor: colors,
+                        borderRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.raw}%` } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Score (%)' } }
+                    }
+                }
+            });
+
+            // Tasks vs Score Chart
+            if (charts.tasksVsScoreChart) charts.tasksVsScoreChart.destroy();
+            const tasksVsScoreCtx = document.getElementById('tasksVsScoreChart').getContext('2d');
+            charts.tasksVsScoreChart = new Chart(tasksVsScoreCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Tasks vs Score',
+                        data: currentEmployees.map(emp => ({ x: emp.tasks, y: emp.score })),
+                        backgroundColor: '#667eea',
+                        pointRadius: 8,
+                        pointHoverRadius: 12,
+                        pointBackgroundColor: '#764ba2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const emp = currentEmployees[ctx.dataIndex];
+                                    return [`${emp.name}:`, `Tasks: ${emp.tasks}`, `Score: ${emp.score}%`];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Number of Tasks' }, min: 0, stepSize: 1 },
+                        y: { title: { display: true, text: 'Score (%)' }, min: 0, max: 100 }
+                    }
+                }
+            });
+
+            // Adherence Chart
+            if (charts.adherenceChart) charts.adherenceChart.destroy();
+            const adherenceCtx = document.getElementById('adherenceChart').getContext('2d');
+            charts.adherenceChart = new Chart(adherenceCtx, {
+                type: 'line',
+                data: {
+                    labels: names,
+                    datasets: [{
+                        label: 'Adherence Rate (%)',
+                        data: adherence,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#10b981',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.raw}%` } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Adherence (%)' } }
+                    }
+                }
+            });
+
+            // Top Performers Chart (Pie)
+            if (charts.topPerformersChart) charts.topPerformersChart.destroy();
+            const topPerformersCtx = document.getElementById('topPerformersChart').getContext('2d');
+            charts.topPerformersChart = new Chart(topPerformersCtx, {
+                type: 'pie',
+                data: {
+                    labels: names,
+                    datasets: [{
+                        data: scores,
+                        backgroundColor: colors,
+                        borderWidth: 0,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw}%` } }
+                    }
+                }
+            });
+        }
+
+        // Apply filters and sorting
+        function applyFilters() {
+            let filtered = [...employees];
+            
+            // Apply title filter
+            const titleFilter = document.getElementById('filterTitle').value;
+            if (titleFilter !== 'all') {
+                filtered = filtered.filter(emp => emp.title === titleFilter);
+            }
+            
+            // Apply sorting
+            const sortBy = document.getElementById('sortBy').value;
+            switch(sortBy) {
+                case 'name':
+                    filtered.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'score':
+                    filtered.sort((a, b) => b.score - a.score);
+                    break;
+                case 'tasks':
+                    filtered.sort((a, b) => b.tasks - a.tasks);
+                    break;
+                case 'adherence':
+                    filtered.sort((a, b) => b.adherence - a.adherence);
+                    break;
+            }
+            
+            currentEmployees = filtered;
+            updateDashboard();
+        }
+        
+        function resetFilters() {
+            document.getElementById('sortBy').value = 'name';
+            document.getElementById('filterTitle').value = 'all';
+            currentEmployees = [...employees];
+            updateDashboard();
+        }
+        
+        function updateDashboard() {
+            updateKPIs();
+            renderTable();
+            updateCharts();
+        }
+        
+        // Initialize dashboard
+        function init() {
+            updateDashboard();
+        }
+        
+        // Run initialization
+        init();
+    </script>
+</body>
+</html>
