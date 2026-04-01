@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CanShift Performance Dashboard</title>
+    <title>📈 CanShift Performance Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -20,7 +20,7 @@
             position: relative;
         }
 
-        /* WATERMARK BACKGROUND */
+        /* Watermark Background */
         body::before {
             content: "";
             position: fixed;
@@ -64,35 +64,24 @@
         }
 
         .logo-wrapper {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-            border-radius: 18px;
-            padding: 10px;
             transition: transform 0.2s ease;
-            min-width: 80px;
-            min-height: 80px;
+        }
+
+        .logo-wrapper:hover {
+            transform: scale(1.05);
         }
 
         .company-logo {
             width: 60px;
             height: 60px;
             object-fit: contain;
-        }
-
-        /* Logo placeholder styling */
-        .logo-placeholder {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 20px;
         }
 
         .title-text h1 {
@@ -112,7 +101,6 @@
             border-radius: 40px;
             color: #667eea;
             font-weight: 600;
-            font-size: 0.85rem;
         }
 
         .kpi-grid {
@@ -139,6 +127,7 @@
             color: #666;
             font-size: 0.9em;
             text-transform: uppercase;
+            letter-spacing: 1px;
             margin-bottom: 10px;
         }
 
@@ -175,6 +164,7 @@
             border-radius: 10px;
             font-size: 14px;
             cursor: pointer;
+            transition: all 0.3s ease;
         }
 
         select {
@@ -189,6 +179,7 @@
 
         button:hover {
             background: #5a67d8;
+            transform: translateY(-2px);
         }
 
         .charts-grid {
@@ -208,6 +199,7 @@
         .chart-card h3 {
             margin-bottom: 20px;
             color: #333;
+            font-size: 1.3em;
         }
 
         canvas {
@@ -220,6 +212,11 @@
             padding: 25px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             overflow-x: auto;
+        }
+
+        .table-section h3 {
+            margin-bottom: 20px;
+            color: #333;
         }
 
         table {
@@ -236,11 +233,27 @@
         th {
             background: #f8f9fa;
             font-weight: bold;
+            color: #555;
         }
 
-        .score-high { color: #10b981; font-weight: bold; }
-        .score-medium { color: #f59e0b; font-weight: bold; }
-        .score-low { color: #ef4444; font-weight: bold; }
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .score-high {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .score-medium {
+            color: #f59e0b;
+            font-weight: bold;
+        }
+
+        .score-low {
+            color: #ef4444;
+            font-weight: bold;
+        }
 
         .progress-bar {
             width: 100%;
@@ -257,9 +270,35 @@
         }
 
         @media (max-width: 768px) {
-            .charts-grid { grid-template-columns: 1fr; }
-            .title-text h1 { font-size: 1.8em; }
-            .company-logo { width: 50px; height: 50px; }
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header-left {
+                justify-content: center;
+            }
+
+            .title-text h1 {
+                font-size: 1.8em;
+            }
+
+            .kpi-value {
+                font-size: 1.8em;
+            }
+
+            .company-logo {
+                width: 50px;
+                height: 50px;
+            }
+
+            body::before {
+                background-size: 100px;
+            }
         }
     </style>
 </head>
@@ -267,11 +306,14 @@
     <div class="dashboard-container">
         <div class="header">
             <div class="header-left">
-                <div class="logo-wrapper" id="logoContainer">
-                    <!-- Logo will be loaded here with JavaScript for better error handling -->
+                <div class="logo-wrapper">
+                    <img class="company-logo"
+                         src="CANSHIFTTT-02.png"
+                         alt="CanShift Logo"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'60\' height=\'60\'%3E%3Crect width=\'60\' height=\'60\' fill=\'%23667eea\'/%3E%3Ctext x=\'30\' y=\'40\' text-anchor=\'middle\' fill=\'white\' font-size=\'24\' font-weight=\'bold\'%3ECS%3C/text%3E%3C/svg%3E'">
                 </div>
                 <div class="title-text">
-                    <h1>🏃‍♂️ CanShift Performance Dashboard</h1>
+                    <h1>CanShift Performance Dashboard</h1>
                     <p>Interactive Analytics & Employee Performance Tracking</p>
                 </div>
             </div>
@@ -332,43 +374,6 @@
     </div>
 
     <script>
-        // Try to load logo with multiple filename attempts
-        function loadLogo() {
-            const logoContainer = document.getElementById('logoContainer');
-            const possibleNames = [
-                'CANSHIFTTT-02.png',
-                'canshifttt-02.png',
-                'CANSHIFTTT-02.PNG',
-                'logo.png',
-                'CANSHIFTTT-02.png?raw=true'
-            ];
-
-            let attempted = 0;
-
-            function tryNextName() {
-                if (attempted >= possibleNames.length) {
-                    // All attempts failed, show placeholder
-                    logoContainer.innerHTML = '<div class="logo-placeholder">CS</div>';
-                    return;
-                }
-
-                const img = new Image();
-                img.onload = function() {
-                    // Logo loaded successfully
-                    logoContainer.innerHTML = `<img class="company-logo" src="${possibleNames[attempted]}" alt="CanShift Logo">`;
-                };
-                img.onerror = function() {
-                    // Try next filename
-                    attempted++;
-                    tryNextName();
-                };
-                img.src = possibleNames[attempted];
-            }
-
-            tryNextName();
-        }
-
-        // Employee data
         let employees = [
             { name: "Amira Sobhy", title: "Content creator", tasks: 2, score: 99.98, adherence: 70.81 },
             { name: "Mohamed Abdel Sattar", title: "Media buyer", tasks: 1, score: 90.00, adherence: 63.05 },
@@ -398,12 +403,12 @@
                 <div class="kpi-card"><h3>Total Tasks</h3><div class="kpi-value">${totalTasks}</div></div>
                 <div class="kpi-card"><h3>Average Adherence</h3><div class="kpi-value">${avgAdherence}%</div></div>
                 <div class="kpi-card"><h3>🏆 Top Performer</h3><div class="kpi-value">${topPerformer.name}</div><div style="font-size:0.9em;color:#666;">${topPerformer.score}%</div></div>
-
+            `;
         }
 
         function renderTable() {
             document.getElementById('employeeTable').innerHTML = `
-                <table>
+                 <table>
                     <thead>
                         <tr><th>Name</th><th>Title</th><th>No. of Tasks</th><th>Score</th><th>Adherence</th><th>Performance</th></tr>
                     </thead>
@@ -419,7 +424,7 @@
                             </tr>
                         `).join('')}
                     </tbody>
-                </table>
+                 </table>
             `;
         }
 
@@ -441,7 +446,7 @@
             charts.tasksVsScoreChart = new Chart(document.getElementById('tasksVsScoreChart'), {
                 type: 'scatter',
                 data: { datasets: [{ label: 'Tasks vs Score', data: currentEmployees.map(emp => ({ x: emp.tasks, y: emp.score })), backgroundColor: '#667eea', pointRadius: 8 }] },
-                options: { scales: { x: { title: { display: true, text: 'Tasks' }, stepSize: 1 }, y: { title: { display: true, text: 'Score (%)' }, max: 100 } } }
+                options: { scales: { x: { title: { display: true, text: 'Number of Tasks' }, stepSize: 1 }, y: { title: { display: true, text: 'Score (%)' }, max: 100 } } }
             });
 
             if (charts.adherenceChart) charts.adherenceChart.destroy();
@@ -487,8 +492,6 @@
             updateCharts();
         }
 
-        // Initialize everything
-        loadLogo();
         updateDashboard();
     </script>
 </body>
