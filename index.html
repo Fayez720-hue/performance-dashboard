@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📈 CanShift Performance Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.0.0"></script>
+    <title>📈 CanShift Performance Dashboard | Live Analytics</title>
+    <!-- Chart.js + plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.0.0/dist/chartjs-plugin-annotation.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -126,7 +127,9 @@
             border-radius: 20px;
             cursor: pointer;
             margin-left: 10px;
+            transition: 0.2s;
         }
+        .refresh-btn:hover { background: #5a67d8; transform: scale(0.97);}
 
         .kpi-grid {
             display: grid;
@@ -166,7 +169,7 @@
         }
 
         .filter-section {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.96);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 25px;
@@ -221,7 +224,6 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        /* Special styling for employee dropdown */
         .employee-select {
             background: linear-gradient(135deg, #667eea10, #764ba210);
             border: 2px solid #667eea;
@@ -362,14 +364,6 @@
             transition: width 0.5s;
         }
 
-        .search-box {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 14px;
-        }
-
         .badge {
             display: inline-block;
             padding: 4px 8px;
@@ -446,74 +440,73 @@
                 <i class="fas fa-sliders-h"></i> Advanced Filters
             </div>
             <div class="filter-grid">
-                <!-- EMPLOYEE NAME DROPDOWN - First filter for visibility -->
                 <div class="filter-group">
                     <label><i class="fas fa-user-circle"></i> 📋 Select Employee Name</label>
                     <select id="employeeSelect" class="employee-select" onchange="applyAdvancedFilters()">
                         <option value="all">👥 All Employees</option>
                     </select>
                 </div>
-
+                <!-- 🔍 SEARCH INPUT WAS MISSING - FIXED -->
+                <div class="filter-group">
+                    <label><i class="fas fa-search"></i> 🔍 Search Employee (Name)</label>
+                    <input type="text" id="searchInput" placeholder="Type employee name..." onkeyup="applyAdvancedFilters()">
+                </div>
                 <div class="filter-group">
                     <label><i class="fas fa-briefcase"></i> 💼 Job Title</label>
                     <select id="filterTitle" onchange="applyAdvancedFilters()">
                         <option value="all">All Titles</option>
                     </select>
                 </div>
-
                 <div class="filter-group">
                     <label><i class="fas fa-chart-line"></i> 📊 Score Range (%)</label>
                     <div class="range-slider">
-                        <input type="range" id="scoreMin" min="0" max="100" value="0" step="1" oninput="updateScoreRange()">
+                        <input type="range" id="scoreMin" min="0" max="100" value="0" step="1" oninput="updateScoreRange(); applyAdvancedFilters()">
                         <div class="range-values">
                             <span>0%</span>
                             <span id="scoreMinValue">0%</span>
                             <span id="scoreMaxValue">100%</span>
                             <span>100%</span>
                         </div>
-                        <input type="range" id="scoreMax" min="0" max="100" value="100" step="1" oninput="updateScoreRange()">
+                        <input type="range" id="scoreMax" min="0" max="100" value="100" step="1" oninput="updateScoreRange(); applyAdvancedFilters()">
                     </div>
                 </div>
-
                 <div class="filter-group">
                     <label><i class="fas fa-tasks"></i> ✅ Tasks Range</label>
                     <div class="range-slider">
-                        <input type="range" id="tasksMin" min="0" max="10" value="0" step="1" oninput="updateTasksRange()">
+                        <input type="range" id="tasksMin" min="0" max="10" value="0" step="1" oninput="updateTasksRange(); applyAdvancedFilters()">
                         <div class="range-values">
                             <span>0</span>
                             <span id="tasksMinValue">0</span>
                             <span id="tasksMaxValue">10</span>
                             <span>10+</span>
                         </div>
-                        <input type="range" id="tasksMax" min="0" max="10" value="10" step="1" oninput="updateTasksRange()">
+                        <input type="range" id="tasksMax" min="0" max="10" value="10" step="1" oninput="updateTasksRange(); applyAdvancedFilters()">
                     </div>
                 </div>
-
                 <div class="filter-group">
                     <label><i class="fas fa-clock"></i> ⏰ Shift Adherence (%)</label>
                     <div class="range-slider">
-                        <input type="range" id="shiftMin" min="0" max="100" value="0" step="1" oninput="updateShiftRange()">
+                        <input type="range" id="shiftMin" min="0" max="100" value="0" step="1" oninput="updateShiftRange(); applyAdvancedFilters()">
                         <div class="range-values">
                             <span>0%</span>
                             <span id="shiftMinValue">0%</span>
                             <span id="shiftMaxValue">100%</span>
                             <span>100%</span>
                         </div>
-                        <input type="range" id="shiftMax" min="0" max="100" value="100" step="1" oninput="updateShiftRange()">
+                        <input type="range" id="shiftMax" min="0" max="100" value="100" step="1" oninput="updateShiftRange(); applyAdvancedFilters()">
                     </div>
                 </div>
-
                 <div class="filter-group">
                     <label><i class="fas fa-edit"></i> 📝 No. of Edits Range</label>
                     <div class="range-slider">
-                        <input type="range" id="editsMin" min="0" max="50" value="0" step="1" oninput="updateEditsRange()">
+                        <input type="range" id="editsMin" min="0" max="50" value="0" step="1" oninput="updateEditsRange(); applyAdvancedFilters()">
                         <div class="range-values">
                             <span>0</span>
                             <span id="editsMinValue">0</span>
                             <span id="editsMaxValue">50</span>
                             <span>50+</span>
                         </div>
-                        <input type="range" id="editsMax" min="0" max="50" value="50" step="1" oninput="updateEditsRange()">
+                        <input type="range" id="editsMax" min="0" max="50" value="50" step="1" oninput="updateEditsRange(); applyAdvancedFilters()">
                     </div>
                 </div>
             </div>
@@ -537,11 +530,11 @@
 
         <div class="charts-grid">
             <div class="chart-card">
-                <h3><i class="fas fa-chart-pie"></i> Task Completion Rate</h3>
+                <h3><i class="fas fa-chart-simple"></i> Task Completion Rate</h3>
                 <canvas id="tasksChart"></canvas>
             </div>
             <div class="chart-card">
-                <h3><i class="fas fa-chart-line"></i> Performance vs Adherence</h3>
+                <h3><i class="fas fa-chart-scatter"></i> Performance vs Adherence</h3>
                 <canvas id="bubbleChart"></canvas>
             </div>
         </div>
@@ -563,120 +556,95 @@
         async function loadData() {
             try {
                 document.getElementById('kpiGrid').innerHTML = '<div class="kpi-card"><i class="fas fa-spinner fa-spin"></i> Loading data...</div>';
-
-                const response = await fetch(APPS_SCRIPT_URL);
+                const response = await fetch(APPS_SCRIPT_URL, { cache: 'no-store' });
+                if (!response.ok) throw new Error('HTTP error');
                 employees = await response.json();
+                if (!Array.isArray(employees) || employees.length === 0) throw new Error('Empty data');
 
-                console.log('Loaded employees:', employees);
+                // sanitize numeric fields
+                employees = employees.map(e => ({
+                    name: e.name || "Unknown",
+                    title: e.title || "N/A",
+                    tasks: Number(e.tasks) || 0,
+                    completed_tasks: Number(e.completed_tasks) || 0,
+                    overall_score: Number(e.overall_score) || 0,
+                    shift_adherence: Number(e.shift_adherence) || 0,
+                    edits: Number(e.edits) || 0
+                }));
 
-                // Populate Employee Dropdown
-                const employeeSelect = document.getElementById('employeeSelect');
-                employeeSelect.innerHTML = '<option value="all">👥 All Employees</option>' +
-                    employees.map(e => `<option value="${e.name}">👤 ${e.name}</option>`).join('');
-
-                // Populate Title Filter
-                const titles = [...new Set(employees.map(e => e.title))];
-                const filterSelect = document.getElementById('filterTitle');
-                filterSelect.innerHTML = '<option value="all">All Titles</option>' +
-                    titles.map(t => `<option value="${t}">${t}</option>`).join('');
-
+                populateDropdowns();
                 currentEmployees = [...employees];
                 updateDashboard();
-
                 const now = new Date();
                 document.getElementById('lastUpdated').innerHTML = `Updated: ${now.toLocaleTimeString()}`;
-
             } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('kpiGrid').innerHTML = `
-                    <div class="kpi-card">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h3>Error Loading Data</h3>
-                        <p>Check Apps Script URL</p>
-                    </div>
-                `;
+                console.error('Fetch error:', error);
                 useFallbackData();
             }
         }
 
-        function useFallbackData() {
-            employees = [
-                { name: "Amira Sobhy", title: "Content creator", tasks: 2, completed_tasks: 2, overall_score: 99.98, shift_adherence: 70.81, edits: 5 },
-                { name: "Mohamed Abdel Sattar", title: "Media buyer", tasks: 1, completed_tasks: 1, overall_score: 90.00, shift_adherence: 63.05, edits: 3 },
-                { name: "Obada Hisham", title: "Videographer", tasks: 3, completed_tasks: 2, overall_score: 65.00, shift_adherence: 64.22, edits: 7 },
-                { name: "Haneen Abdel Fattah", title: "Graphic designer", tasks: 1, completed_tasks: 1, overall_score: 10.00, shift_adherence: 66.23, edits: 1 }
-            ];
-
+        function populateDropdowns() {
             const employeeSelect = document.getElementById('employeeSelect');
             employeeSelect.innerHTML = '<option value="all">👥 All Employees</option>' +
-                employees.map(e => `<option value="${e.name}">👤 ${e.name}</option>`).join('');
+                employees.map(e => `<option value="${escapeHtml(e.name)}">👤 ${escapeHtml(e.name)}</option>`).join('');
 
             const titles = [...new Set(employees.map(e => e.title))];
             const filterSelect = document.getElementById('filterTitle');
             filterSelect.innerHTML = '<option value="all">All Titles</option>' +
-                titles.map(t => `<option value="${t}">${t}</option>`).join('');
+                titles.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+        }
 
+        function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+        function useFallbackData() {
+            employees = [
+                { name: "Amira Sobhy", title: "Content Creator", tasks: 5, completed_tasks: 5, overall_score: 99.8, shift_adherence: 92.4, edits: 2 },
+                { name: "Mohamed Abdel Sattar", title: "Media Buyer", tasks: 4, completed_tasks: 4, overall_score: 88.5, shift_adherence: 87.1, edits: 3 },
+                { name: "Obada Hisham", title: "Videographer", tasks: 6, completed_tasks: 4, overall_score: 68.2, shift_adherence: 74.5, edits: 8 },
+                { name: "Haneen Abdel Fattah", title: "Graphic Designer", tasks: 3, completed_tasks: 3, overall_score: 94.3, shift_adherence: 88.0, edits: 1 },
+                { name: "Youssef Gamal", title: "Data Analyst", tasks: 7, completed_tasks: 5, overall_score: 71.0, shift_adherence: 69.3, edits: 9 },
+                { name: "Salma Hisham", title: "Content Creator", tasks: 4, completed_tasks: 3, overall_score: 77.5, shift_adherence: 81.0, edits: 2 },
+                { name: "Karim Walid", title: "Media Buyer", tasks: 5, completed_tasks: 5, overall_score: 96.2, shift_adherence: 94.8, edits: 1 }
+            ];
+            populateDropdowns();
             currentEmployees = [...employees];
             updateDashboard();
-            document.getElementById('lastUpdated').innerHTML = `Demo Mode (Google Sheets unavailable)`;
+            document.getElementById('lastUpdated').innerHTML = `Demo Mode (using sample data)`;
         }
 
         function getScoreClass(score) {
             if (score >= 80) return 'score-high';
-            if (score >= 50) return 'score-medium';
+            if (score >= 55) return 'score-medium';
             return 'score-low';
         }
 
         function getPerformanceBadge(score) {
             if (score >= 80) return '<span class="badge badge-excellent">Excellent</span>';
-            if (score >= 50) return '<span class="badge badge-good">Good</span>';
+            if (score >= 55) return '<span class="badge badge-good">Good</span>';
             return '<span class="badge badge-needs">Needs Improvement</span>';
         }
 
         function updateKPIs() {
+            if (!currentEmployees.length) {
+                document.getElementById('kpiGrid').innerHTML = `<div class="kpi-card"><h3>No data</h3><div>Adjust filters</div></div>`;
+                return;
+            }
             const total = currentEmployees.length;
-            const avgScore = (currentEmployees.reduce((s, e) => s + (e.overall_score || 0), 0) / total).toFixed(2);
+            const avgScore = (currentEmployees.reduce((s, e) => s + (e.overall_score || 0), 0) / total).toFixed(1);
             const totalTasks = currentEmployees.reduce((s, e) => s + (e.tasks || 0), 0);
             const totalCompleted = currentEmployees.reduce((s, e) => s + (e.completed_tasks || 0), 0);
-            const avgShift = (currentEmployees.reduce((s, e) => s + (e.shift_adherence || 0), 0) / total).toFixed(2);
+            const avgShift = (currentEmployees.reduce((s, e) => s + (e.shift_adherence || 0), 0) / total).toFixed(1);
             const topPerformer = currentEmployees.reduce((max, e) => (e.overall_score || 0) > (max.overall_score || 0) ? e : max, currentEmployees[0]);
             const totalEdits = currentEmployees.reduce((s, e) => s + (e.edits || 0), 0);
             const completionRate = totalTasks > 0 ? ((totalCompleted / totalTasks) * 100).toFixed(1) : 0;
 
             document.getElementById('kpiGrid').innerHTML = `
-                <div class="kpi-card">
-                    <i class="fas fa-users" style="font-size: 2em; color: #667eea;"></i>
-                    <h3>Total Employees</h3>
-                    <div class="kpi-value">${total}</div>
-                </div>
-                <div class="kpi-card">
-                    <i class="fas fa-star" style="font-size: 2em; color: #f59e0b;"></i>
-                    <h3>Average Score</h3>
-                    <div class="kpi-value">${avgScore}%</div>
-                    <small>${getPerformanceBadge(avgScore)}</small>
-                </div>
-                <div class="kpi-card">
-                    <i class="fas fa-check-circle" style="font-size: 2em; color: #10b981;"></i>
-                    <h3>Completion Rate</h3>
-                    <div class="kpi-value">${completionRate}%</div>
-                    <small>${totalCompleted}/${totalTasks} tasks</small>
-                </div>
-                <div class="kpi-card">
-                    <i class="fas fa-clock" style="font-size: 2em; color: #667eea;"></i>
-                    <h3>Avg Shift Adherence</h3>
-                    <div class="kpi-value">${avgShift}%</div>
-                </div>
-                <div class="kpi-card">
-                    <i class="fas fa-edit" style="font-size: 2em; color: #f59e0b;"></i>
-                    <h3>Total Edits</h3>
-                    <div class="kpi-value">${totalEdits}</div>
-                </div>
-                <div class="kpi-card">
-                    <i class="fas fa-trophy" style="font-size: 2em; color: gold;"></i>
-                    <h3>Top Performer</h3>
-                    <div class="kpi-value">${topPerformer.name}</div>
-                    <div>${topPerformer.overall_score || 0}%</div>
-                </div>
+                <div class="kpi-card"><i class="fas fa-users" style="font-size: 2em; color: #667eea;"></i><h3>Total Employees</h3><div class="kpi-value">${total}</div></div>
+                <div class="kpi-card"><i class="fas fa-star" style="font-size: 2em; color: #f59e0b;"></i><h3>Average Score</h3><div class="kpi-value">${avgScore}%</div><small>${getPerformanceBadge(avgScore)}</small></div>
+                <div class="kpi-card"><i class="fas fa-check-circle" style="font-size: 2em; color: #10b981;"></i><h3>Completion Rate</h3><div class="kpi-value">${completionRate}%</div><small>${totalCompleted}/${totalTasks} tasks</small></div>
+                <div class="kpi-card"><i class="fas fa-clock" style="font-size: 2em; color: #667eea;"></i><h3>Avg Shift Adherence</h3><div class="kpi-value">${avgShift}%</div></div>
+                <div class="kpi-card"><i class="fas fa-edit" style="font-size: 2em; color: #f59e0b;"></i><h3>Total Edits</h3><div class="kpi-value">${totalEdits}</div></div>
+                <div class="kpi-card"><i class="fas fa-trophy" style="font-size: 2em; color: gold;"></i><h3>Top Performer</h3><div class="kpi-value">${escapeHtml(topPerformer.name)}</div><div>${topPerformer.overall_score || 0}%</div></div>
             `;
         }
 
@@ -684,33 +652,19 @@
             document.getElementById('employeeTable').innerHTML = `
                 <table>
                     <thead>
-                        <tr>
-                            <th onclick="sortTable('name')">Name</th>
-                            <th onclick="sortTable('title')">Title</th>
-                            <th onclick="sortTable('tasks')">Tasks</th>
-                            <th onclick="sortTable('completed')">Completed</th>
-                            <th onclick="sortTable('score')">Overall Score</th>
-                            <th onclick="sortTable('shift')">Shift Adherence</th>
-                            <th onclick="sortTable('edits')">No. of Edits</th>
-                            <th>Performance</th>
-                        </tr>
+                        <tr><th onclick="sortTable('name')">Name</th><th onclick="sortTable('title')">Title</th><th onclick="sortTable('tasks')">Tasks</th><th onclick="sortTable('completed')">Completed</th><th onclick="sortTable('score')">Overall Score</th><th onclick="sortTable('shift')">Shift Adherence</th><th onclick="sortTable('edits')">No. of Edits</th><th>Performance</th></tr>
                     </thead>
                     <tbody>
                         ${currentEmployees.map(e => `
                             <tr>
-                                <td><strong>${e.name}</strong></td>
-                                <td>${e.title}</td>
+                                <td><strong>${escapeHtml(e.name)}</strong></td>
+                                <td>${escapeHtml(e.title)}</td>
                                 <td>${e.tasks || 0}</td>
                                 <td>${e.completed_tasks || 0}</td>
-                                <td class="${getScoreClass(e.overall_score || 0)}">${e.overall_score || 0}%</td>
-                                <td>${e.shift_adherence || 0}%</td>
-                                <td>${e.edits || 0}</td>
-                                <td>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width: ${e.overall_score || 0}%"></div>
-                                    </div>
-                                    ${getPerformanceBadge(e.overall_score || 0)}
-                                </td>
+                                <td class="${getScoreClass(e.overall_score)}">${e.overall_score}%</td>
+                                <td>${e.shift_adherence}%</td>
+                                <td>${e.edits}</td>
+                                <td><div class="progress-bar"><div class="progress-fill" style="width: ${e.overall_score}%"></div></div>${getPerformanceBadge(e.overall_score)}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -719,7 +673,7 @@
         }
 
         let sortDirection = {};
-        function sortTable(column) {
+        window.sortTable = function(column) {
             sortDirection[column] = sortDirection[column] === 'asc' ? 'desc' : 'asc';
             const sorted = [...currentEmployees].sort((a, b) => {
                 let valA, valB;
@@ -739,7 +693,7 @@
             currentEmployees = sorted;
             renderTable();
             updateCharts();
-        }
+        };
 
         function updateCharts() {
             const names = currentEmployees.map(e => e.name);
@@ -747,71 +701,53 @@
             const shift = currentEmployees.map(e => e.shift_adherence || 0);
             const tasks = currentEmployees.map(e => e.tasks || 0);
             const completed = currentEmployees.map(e => e.completed_tasks || 0);
-            const colors = ['#667eea', '#764ba2', '#f59e0b', '#10b981'];
 
             if (charts.scoreChart) charts.scoreChart.destroy();
             charts.scoreChart = new Chart(document.getElementById('scoreChart'), {
                 type: 'bar',
-                data: { labels: names, datasets: [{ label: 'Overall Score (%)', data: scores, backgroundColor: colors, borderRadius: 10 }] },
-                options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
+                data: { labels: names, datasets: [{ label: 'Overall Score (%)', data: scores, backgroundColor: '#667eea', borderRadius: 8 }] },
+                options: { responsive: true, scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: 'Score (%)' } } } }
             });
-
             if (charts.shiftChart) charts.shiftChart.destroy();
             charts.shiftChart = new Chart(document.getElementById('shiftChart'), {
                 type: 'line',
-                data: { labels: names, datasets: [{ label: 'Shift Adherence (%)', data: shift, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true }] },
+                data: { labels: names, datasets: [{ label: 'Shift Adherence (%)', data: shift, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.2 }] },
                 options: { scales: { y: { beginAtZero: true, max: 100 } } }
             });
-
             if (charts.tasksChart) charts.tasksChart.destroy();
             charts.tasksChart = new Chart(document.getElementById('tasksChart'), {
                 type: 'bar',
-                data: { labels: names, datasets: [{ label: 'Assigned', data: tasks, backgroundColor: '#667eea' }, { label: 'Completed', data: completed, backgroundColor: '#10b981' }] },
+                data: { labels: names, datasets: [{ label: 'Assigned Tasks', data: tasks, backgroundColor: '#667eea' }, { label: 'Completed', data: completed, backgroundColor: '#10b981' }] },
                 options: { responsive: true }
             });
-
             if (charts.bubbleChart) charts.bubbleChart.destroy();
             charts.bubbleChart = new Chart(document.getElementById('bubbleChart'), {
                 type: 'bubble',
-                data: { datasets: [{ label: 'Performance', data: currentEmployees.map(e => ({ x: e.overall_score || 0, y: e.shift_adherence || 0, r: (e.tasks || 0) * 3 })), backgroundColor: '#667eea' }] },
+                data: { datasets: [{ label: 'Employees', data: currentEmployees.map(e => ({ x: e.overall_score || 0, y: e.shift_adherence || 0, r: Math.max(5, (e.tasks || 1) * 3) })), backgroundColor: '#764ba2' }] },
                 options: { scales: { x: { title: { display: true, text: 'Overall Score (%)' }, max: 100 }, y: { title: { display: true, text: 'Shift Adherence (%)' }, max: 100 } } }
             });
         }
 
         function applyAdvancedFilters() {
             let filtered = [...employees];
-
             const selectedEmployee = document.getElementById('employeeSelect').value;
-            if (selectedEmployee !== 'all') {
-                filtered = filtered.filter(e => e.name === selectedEmployee);
-            }
-
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            if (searchTerm) {
-                filtered = filtered.filter(e => e.name.toLowerCase().includes(searchTerm));
-            }
-
+            if (selectedEmployee !== 'all') filtered = filtered.filter(e => e.name === selectedEmployee);
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (searchTerm) filtered = filtered.filter(e => e.name.toLowerCase().includes(searchTerm));
             const titleFilter = document.getElementById('filterTitle').value;
-            if (titleFilter !== 'all') {
-                filtered = filtered.filter(e => e.title === titleFilter);
-            }
-
+            if (titleFilter !== 'all') filtered = filtered.filter(e => e.title === titleFilter);
             const scoreMin = parseFloat(document.getElementById('scoreMin').value);
             const scoreMax = parseFloat(document.getElementById('scoreMax').value);
             filtered = filtered.filter(e => (e.overall_score || 0) >= scoreMin && (e.overall_score || 0) <= scoreMax);
-
             const tasksMin = parseFloat(document.getElementById('tasksMin').value);
             const tasksMax = parseFloat(document.getElementById('tasksMax').value);
             filtered = filtered.filter(e => (e.tasks || 0) >= tasksMin && (e.tasks || 0) <= tasksMax);
-
             const shiftMin = parseFloat(document.getElementById('shiftMin').value);
             const shiftMax = parseFloat(document.getElementById('shiftMax').value);
             filtered = filtered.filter(e => (e.shift_adherence || 0) >= shiftMin && (e.shift_adherence || 0) <= shiftMax);
-
             const editsMin = parseFloat(document.getElementById('editsMin').value);
             const editsMax = parseFloat(document.getElementById('editsMax').value);
             filtered = filtered.filter(e => (e.edits || 0) >= editsMin && (e.edits || 0) <= editsMax);
-
             currentEmployees = filtered;
             updateDashboard();
             updateActiveFilters();
@@ -828,7 +764,6 @@
             const shiftMax = document.getElementById('shiftMax').value;
             const editsMin = document.getElementById('editsMin').value;
             const editsMax = document.getElementById('editsMax').value;
-
             let activeFilters = [];
             if (selectedEmployee !== 'all') activeFilters.push(`Employee: ${selectedEmployee}`);
             if (searchTerm) activeFilters.push(`Search: "${searchTerm}"`);
@@ -836,67 +771,33 @@
             if (scoreMin != 0 || scoreMax != 100) activeFilters.push(`Score: ${scoreMin}% - ${scoreMax}%`);
             if (shiftMin != 0 || shiftMax != 100) activeFilters.push(`Shift: ${shiftMin}% - ${shiftMax}%`);
             if (editsMin != 0 || editsMax != 50) activeFilters.push(`Edits: ${editsMin} - ${editsMax}`);
-
-            if (activeFilters.length > 0) {
-                filtersDiv.innerHTML = '<i class="fas fa-filter"></i> Active: ' +
-                    activeFilters.map(f => `<span class="filter-tag">${f}</span>`).join('');
-            } else {
-                filtersDiv.innerHTML = '<i class="fas fa-info-circle"></i> Showing all employees';
-            }
+            if (activeFilters.length) filtersDiv.innerHTML = '<i class="fas fa-filter"></i> Active: ' + activeFilters.map(f => `<span class="filter-tag">${f}</span>`).join('');
+            else filtersDiv.innerHTML = '<i class="fas fa-info-circle"></i> Showing all employees';
         }
 
         function resetFilters() {
             document.getElementById('employeeSelect').value = 'all';
             document.getElementById('searchInput').value = '';
             document.getElementById('filterTitle').value = 'all';
-            document.getElementById('scoreMin').value = 0;
-            document.getElementById('scoreMax').value = 100;
-            document.getElementById('tasksMin').value = 0;
-            document.getElementById('tasksMax').value = 10;
-            document.getElementById('shiftMin').value = 0;
-            document.getElementById('shiftMax').value = 100;
-            document.getElementById('editsMin').value = 0;
-            document.getElementById('editsMax').value = 50;
-
-            document.getElementById('scoreMinValue').innerText = '0%';
-            document.getElementById('scoreMaxValue').innerText = '100%';
-            document.getElementById('tasksMinValue').innerText = '0';
-            document.getElementById('tasksMaxValue').innerText = '10';
-            document.getElementById('shiftMinValue').innerText = '0%';
-            document.getElementById('shiftMaxValue').innerText = '100%';
-            document.getElementById('editsMinValue').innerText = '0';
-            document.getElementById('editsMaxValue').innerText = '50';
-
+            document.getElementById('scoreMin').value = 0; document.getElementById('scoreMax').value = 100;
+            document.getElementById('tasksMin').value = 0; document.getElementById('tasksMax').value = 10;
+            document.getElementById('shiftMin').value = 0; document.getElementById('shiftMax').value = 100;
+            document.getElementById('editsMin').value = 0; document.getElementById('editsMax').value = 50;
+            document.getElementById('scoreMinValue').innerText = '0%'; document.getElementById('scoreMaxValue').innerText = '100%';
+            document.getElementById('tasksMinValue').innerText = '0'; document.getElementById('tasksMaxValue').innerText = '10';
+            document.getElementById('shiftMinValue').innerText = '0%'; document.getElementById('shiftMaxValue').innerText = '100%';
+            document.getElementById('editsMinValue').innerText = '0'; document.getElementById('editsMaxValue').innerText = '50';
             currentEmployees = [...employees];
             updateDashboard();
             updateActiveFilters();
         }
 
-        function updateScoreRange() {
-            document.getElementById('scoreMinValue').innerText = document.getElementById('scoreMin').value + '%';
-            document.getElementById('scoreMaxValue').innerText = document.getElementById('scoreMax').value + '%';
-        }
+        function updateScoreRange() { document.getElementById('scoreMinValue').innerText = document.getElementById('scoreMin').value + '%'; document.getElementById('scoreMaxValue').innerText = document.getElementById('scoreMax').value + '%'; }
+        function updateTasksRange() { document.getElementById('tasksMinValue').innerText = document.getElementById('tasksMin').value; document.getElementById('tasksMaxValue').innerText = document.getElementById('tasksMax').value; }
+        function updateShiftRange() { document.getElementById('shiftMinValue').innerText = document.getElementById('shiftMin').value + '%'; document.getElementById('shiftMaxValue').innerText = document.getElementById('shiftMax').value + '%'; }
+        function updateEditsRange() { document.getElementById('editsMinValue').innerText = document.getElementById('editsMin').value; document.getElementById('editsMaxValue').innerText = document.getElementById('editsMax').value; }
 
-        function updateTasksRange() {
-            document.getElementById('tasksMinValue').innerText = document.getElementById('tasksMin').value;
-            document.getElementById('tasksMaxValue').innerText = document.getElementById('tasksMax').value;
-        }
-
-        function updateShiftRange() {
-            document.getElementById('shiftMinValue').innerText = document.getElementById('shiftMin').value + '%';
-            document.getElementById('shiftMaxValue').innerText = document.getElementById('shiftMax').value + '%';
-        }
-
-        function updateEditsRange() {
-            document.getElementById('editsMinValue').innerText = document.getElementById('editsMin').value;
-            document.getElementById('editsMaxValue').innerText = document.getElementById('editsMax').value;
-        }
-
-        function updateDashboard() {
-            updateKPIs();
-            renderTable();
-            updateCharts();
-        }
+        function updateDashboard() { updateKPIs(); renderTable(); updateCharts(); }
 
         loadData();
         setInterval(loadData, 300000);
