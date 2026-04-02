@@ -300,6 +300,13 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+        /* Employee Select Dropdown - Styled */
+        .employee-select {
+            background: linear-gradient(135deg, #667eea10, #764ba210);
+            border: 2px solid #667eea;
+            font-weight: 500;
+        }
+
         .range-slider {
             width: 100%;
             margin: 10px 0;
@@ -495,6 +502,29 @@
         .badge-good { background: #f59e0b20; color: #f59e0b; }
         .badge-needs { background: #ef444420; color: #ef4444; }
 
+        /* Active filters indicator */
+        .active-filters {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f0f2ff;
+            border-radius: 10px;
+            font-size: 0.85em;
+            color: #667eea;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-tag {
+            background: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         @media (max-width: 768px) {
             .charts-grid {
                 grid-template-columns: 1fr;
@@ -536,6 +566,14 @@
                 <i class="fas fa-sliders-h"></i> Advanced Filters
             </div>
             <div class="filter-grid">
+                <!-- NEW: Employee Name Dropdown -->
+                <div class="filter-group">
+                    <label><i class="fas fa-user"></i> 👤 Select Employee</label>
+                    <select id="employeeSelect" class="employee-select" onchange="applyAdvancedFilters()">
+                        <option value="all">📊 All Employees</option>
+                    </select>
+                </div>
+
                 <div class="filter-group">
                     <label><i class="fas fa-search"></i> Search Employee</label>
                     <input type="text" id="searchInput" placeholder="Type employee name..." class="search-box">
@@ -590,6 +628,7 @@
                 <button class="btn-primary" onclick="applyAdvancedFilters()"><i class="fas fa-filter"></i> Apply Filters</button>
                 <button class="btn-secondary" onclick="resetFilters()"><i class="fas fa-undo"></i> Reset</button>
             </div>
+            <div class="active-filters" id="activeFilters"></div>
         </div>
 
         <div class="charts-grid">
@@ -650,6 +689,11 @@
                 const response = await fetch(APPS_SCRIPT_URL);
                 employees = await response.json();
 
+                // Update Employee Dropdown
+                const employeeSelect = document.getElementById('employeeSelect');
+                employeeSelect.innerHTML = '<option value="all">📊 All Employees</option>' +
+                    employees.map(e => `<option value="${e.name}">👤 ${e.name}</option>`).join('');
+
                 // Update title filter
                 const titles = [...new Set(employees.map(e => e.title))];
                 const filterSelect = document.getElementById('filterTitle');
@@ -671,7 +715,32 @@
                         <p>Please check your Apps Script URL</p>
                     </div>
                 `;
+                useFallbackData();
             }
+        }
+
+        // Fallback data in case Google Sheets fails
+        function useFallbackData() {
+            employees = [
+                { name: "Amira Sobhy", title: "Content creator", tasks: 2, completed_tasks: 2, overall_score: 99.98, shift_adherence: 70.81, deadline_adherence: 85 },
+                { name: "Mohamed Abdel Sattar", title: "Media buyer", tasks: 1, completed_tasks: 1, overall_score: 90.00, shift_adherence: 63.05, deadline_adherence: 78 },
+                { name: "Obada Hisham", title: "Videographer", tasks: 3, completed_tasks: 2, overall_score: 65.00, shift_adherence: 64.22, deadline_adherence: 72 },
+                { name: "Haneen Abdel Fattah", title: "Graphic designer", tasks: 1, completed_tasks: 1, overall_score: 10.00, shift_adherence: 66.23, deadline_adherence: 45 }
+            ];
+
+            // Update Employee Dropdown with fallback data
+            const employeeSelect = document.getElementById('employeeSelect');
+            employeeSelect.innerHTML = '<option value="all">📊 All Employees</option>' +
+                employees.map(e => `<option value="${e.name}">👤 ${e.name}</option>`).join('');
+
+            const titles = [...new Set(employees.map(e => e.title))];
+            const filterSelect = document.getElementById('filterTitle');
+            filterSelect.innerHTML = '<option value="all">All Titles</option>' +
+                titles.map(t => `<option value="${t}">${t}</option>`).join('');
+
+            currentEmployees = [...employees];
+            updateDashboard();
+            document.getElementById('lastUpdated').innerHTML = `<i class="fas fa-database"></i> Demo Mode`;
         }
 
         // Get score class
@@ -696,7 +765,7 @@
             const totalCompleted = currentEmployees.reduce((s, e) => s + (e.completed_tasks || 0), 0);
             const avgShift = (currentEmployees.reduce((s, e) => s + (e.shift_adherence || 0), 0) / total).toFixed(2);
             const topPerformer = currentEmployees.reduce((max, e) => (e.overall_score || 0) > (max.overall_score || 0) ? e : max, currentEmployees[0]);
-            const completionRate = ((totalCompleted / totalTasks) * 100).toFixed(1);
+            const completionRate = totalTasks > 0 ? ((totalCompleted / totalTasks) * 100).toFixed(1) : 0;
 
             document.getElementById('kpiGrid').innerHTML = `
                 <div class="kpi-card" onclick="filterByTop()">
@@ -811,6 +880,7 @@
         // Filter functions
         function filterByTop() {
             document.getElementById('searchInput').value = '';
+            document.getElementById('employeeSelect').value = 'all';
             document.getElementById('filterTitle').value = 'all';
             document.getElementById('scoreMin').value = 0;
             document.getElementById('scoreMax').value = 100;
@@ -824,7 +894,7 @@
         }
 
         function filterByTopPerformer(name) {
-            document.getElementById('searchInput').value = name;
+            document.getElementById('employeeSelect').value = name;
             applyAdvancedFilters();
         }
 
@@ -902,6 +972,12 @@
         function applyAdvancedFilters() {
             let filtered = [...employees];
 
+            // Employee dropdown filter (NEW)
+            const selectedEmployee = document.getElementById('employeeSelect').value;
+            if (selectedEmployee !== 'all') {
+                filtered = filtered.filter(e => e.name === selectedEmployee);
+            }
+
             const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
             if (searchTerm) filtered = filtered.filter(e => e.name.toLowerCase().includes(searchTerm));
 
@@ -922,9 +998,38 @@
 
             currentEmployees = filtered;
             updateDashboard();
+
+            // Update active filters display
+            updateActiveFilters();
+        }
+
+        function updateActiveFilters() {
+            const filtersDiv = document.getElementById('activeFilters');
+            const selectedEmployee = document.getElementById('employeeSelect').value;
+            const searchTerm = document.getElementById('searchInput').value;
+            const titleFilter = document.getElementById('filterTitle').value;
+            const scoreMin = document.getElementById('scoreMin').value;
+            const scoreMax = document.getElementById('scoreMax').value;
+            const shiftMin = document.getElementById('shiftMin').value;
+            const shiftMax = document.getElementById('shiftMax').value;
+
+            let activeFilters = [];
+            if (selectedEmployee !== 'all') activeFilters.push(`👤 Employee: ${selectedEmployee}`);
+            if (searchTerm) activeFilters.push(`🔍 Search: "${searchTerm}"`);
+            if (titleFilter !== 'all') activeFilters.push(`💼 Title: ${titleFilter}`);
+            if (scoreMin != 0 || scoreMax != 100) activeFilters.push(`📊 Score: ${scoreMin}% - ${scoreMax}%`);
+            if (shiftMin != 0 || shiftMax != 100) activeFilters.push(`⏰ Shift: ${shiftMin}% - ${shiftMax}%`);
+
+            if (activeFilters.length > 0) {
+                filtersDiv.innerHTML = '<i class="fas fa-filter"></i> Active Filters: ' +
+                    activeFilters.map(f => `<span class="filter-tag">${f}</span>`).join('');
+            } else {
+                filtersDiv.innerHTML = '<i class="fas fa-info-circle"></i> No active filters - showing all data';
+            }
         }
 
         function resetFilters() {
+            document.getElementById('employeeSelect').value = 'all';
             document.getElementById('searchInput').value = '';
             document.getElementById('filterTitle').value = 'all';
             document.getElementById('scoreMin').value = 0;
@@ -943,6 +1048,7 @@
 
             currentEmployees = [...employees];
             updateDashboard();
+            updateActiveFilters();
         }
 
         function updateDashboard() {
